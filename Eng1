@@ -1,11 +1,108 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>My Website</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Group Presentation Upload</title>
+<style>
+body { font-family: Arial,sans-serif; background:#f2f5f7; display:flex; justify-content:center; align-items:center; height:100vh; }
+.upload-container { background:white; padding:30px; border-radius:12px; box-shadow:0 8px 16px rgba(0,0,0,0.2); width:450px; text-align:center; }
+h2 { margin-bottom:20px; color:#333; }
+input, select, textarea, button { width:100%; margin:10px 0; padding:10px; border-radius:6px; border:1px solid #ccc; font-size:16px; }
+textarea { resize: vertical; }
+button { background:#4CAF50; color:white; border:none; cursor:pointer; }
+button:hover { background:#45a049; }
+#message { margin-top:15px; font-weight:bold; }
+</style>
 </head>
 <body>
-  <h1>Hello</h1>
-  <p>This is my website.</p>
+
+<div class="upload-container">
+  <h2>Group Presentation Upload</h2>
+
+  <select id="topic" required>
+    <option value="">--Choose Topic--</option>
+    <option value="Did Americans Land on Mars?">Did Americans Land on Mars?</option>
+    <option value="Is there Life outside Earth?">Is there Life outside Earth?</option>
+    <option value="Is Earth Flat?">Is Earth Flat?</option>
+  </select>
+
+  <input type="text" id="firstName" placeholder="Leader First Name" required>
+  <input type="text" id="lastName" placeholder="Leader Last Name" required>
+  <input type="text" id="groupName" placeholder="Group Name / Number" required>
+  <input type="number" id="estimatedTime" placeholder="Estimated Timing (minutes)" required>
+  <textarea id="members" placeholder="Group Members (separate by commas)" required></textarea>
+  <input type="file" id="file" required>
+  <button id="submitBtn">Upload</button>
+
+  <div id="message"></div>
+</div>
+
+<script>
+document.getElementById('submitBtn').addEventListener('click', function() {
+  const topic = document.getElementById('topic').value.trim();
+  const firstName = document.getElementById('firstName').value.trim();
+  const lastName = document.getElementById('lastName').value.trim();
+  const groupName = document.getElementById('groupName').value.trim();
+  const estimatedTime = document.getElementById('estimatedTime').value.trim();
+  const members = document.getElementById('members').value.trim();
+  const fileInput = document.getElementById('file');
+  const message = document.getElementById('message');
+
+  if (!topic || !firstName || !lastName || !groupName || !estimatedTime || !members) {
+    message.style.color = 'red';
+    message.textContent = 'Please fill all fields.';
+    return;
+  }
+
+  if (!fileInput.files.length) {
+    message.style.color = 'red';
+    message.textContent = 'Please select a file.';
+    return;
+  }
+
+  const file = fileInput.files[0];
+  message.style.color = 'blue';
+  message.textContent = 'Uploading... please wait.';
+
+  const reader = new FileReader();
+  reader.onload = function() {
+    const base64Data = reader.result.split(",")[1];
+
+    const data = new URLSearchParams();
+    data.append("topic", topic);
+    data.append("firstName", firstName);
+    data.append("lastName", lastName);
+    data.append("groupName", groupName);
+    data.append("estimatedTime", estimatedTime);
+    data.append("members", members);
+    data.append("fileName", file.name);
+    data.append("mimeType", file.type);
+    data.append("myFile", base64Data);
+
+    fetch("https://script.google.com/macros/s/AKfycbxoEjhB4JebnLgRuFZHKKGqJo5g5iszYgcjpVf228MQ7l2zJGzZih3tcYok-AzvVoqB/exec", { method: "POST", body: data })
+      .then(response => response.text())
+      .then(result => {
+        message.style.color = 'green';
+        message.textContent = result;
+        // Reset form
+        document.getElementById('topic').value = '';
+        document.getElementById('firstName').value = '';
+        document.getElementById('lastName').value = '';
+        document.getElementById('groupName').value = '';
+        document.getElementById('estimatedTime').value = '';
+        document.getElementById('members').value = '';
+        fileInput.value = '';
+      })
+      .catch(error => {
+        message.style.color = 'red';
+        message.textContent = 'Upload failed! ' + error;
+      });
+  };
+
+  reader.readAsDataURL(file);
+});
+</script>
+
 </body>
 </html>
-
